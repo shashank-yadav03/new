@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Happy New Year</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* BACKGROUND */
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at top, #0b1d2a, #020617);
+  color: white;
+}
+
+/* CANVAS */
+canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+/* SLIDES */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* TEXT */
+.glow-text {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  text-shadow: 0 0 20px rgba(255,255,255,0.6);
+  margin-bottom: 20px;
+}
+
+/* FLIP WORD */
+.flip-line {
+  display: flex;
+  gap: 12px;
+}
+
+.word {
+  perspective: 600px;
+}
+
+.word span {
+  display: inline-block;
+  animation: flipIn 1s ease forwards;
+}
+
+@keyframes flipIn {
+  0% { transform: rotateX(90deg); opacity: 0; }
+  100% { transform: rotateX(0); opacity: 1; }
+}
+
+/* HEART */
+.heart {
+  font-size: 4rem;
+  cursor: pointer;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* FORM */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(90%, 420px);
+}
+
+input, textarea, button {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+}
+
+input, textarea {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+textarea { resize: none; height: 90px; }
+
+button {
+  background: linear-gradient(135deg,#ff7eb3,#ff758c);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* FINAL MESSAGE */
+.final-message {
+  max-width: 720px;
+  text-align: center;
+  line-height: 1.7;
+  font-size: 1.1rem;
+  padding: 20px;
+}
+
+/* TRANSITION */
+.fade-out {
+  animation: fadeOut 1s forwards;
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- SLIDE 1 -->
+<div class="slide active" id="slide1">
+  <div class="flip-line glow-text" id="wish"></div>
+  <div class="flip-line glow-text" id="year"></div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" id="slide2">
+  <div class="glow-text">ANYTHING</div>
+  <form id="reviewForm" action="https://formspree.io/f/maqnwpql" method="POST">
+    <input name="name" placeholder="Your name" required>
+    <textarea name="liked" placeholder="👍🏻 Things you liked about me"></textarea>
+    <textarea name="disliked" placeholder="👎🏻 Things you disliked about me"></textarea>
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" id="slide3">
+  <div class="heart" id="openLetter">💌</div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide" id="slide4">
+  <div class="final-message glow-text">
+    Things change like the weather, the days, the months, even whole years.<br><br>
+    People change too. But what will never change are the memories we shared,
+    will share and the place you hold in my life.<br><br>
+    You’ll always be remembered, always be reassured,
+    and always be loved by me.<br><br>
+    Wishing you a beautiful year ahead. Take care of yourself.
+    You mean so much to me.
+  </div>
+</div>
+
+<script>
+/* WISH FLIP */
+const wishWords = ["HAPPY", "NEW", "YEAR"];
+const yearDigits = ["2","0","2","6"];
+
+function renderFlip(container, items, delay=300) {
+  container.innerHTML = "";
+  items.forEach((text, i) => {
+    const w = document.createElement("div");
+    w.className = "word";
+    const s = document.createElement("span");
+    s.textContent = text;
+    s.style.animationDelay = `${i*delay}ms`;
+    w.appendChild(s);
+    container.appendChild(w);
+  });
+}
+
+renderFlip(document.getElementById("wish"), wishWords);
+renderFlip(document.getElementById("year"), yearDigits, 200);
+
+/* SLIDE CONTROL */
+setTimeout(()=>{
+  document.getElementById("slide1").classList.remove("active");
+  document.getElementById("slide2").classList.add("active");
+}, 5500);
+
+/* FORM */
+document.getElementById("reviewForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  fetch(e.target.action,{
+    method:"POST",
+    body:new FormData(e.target),
+    headers:{'Accept':'application/json'}
+  }).then(()=>{
+    document.getElementById("slide2").classList.remove("active");
+    document.getElementById("slide3").classList.add("active");
+  });
+});
+
+/* LETTER */
+document.getElementById("openLetter").onclick=()=>{
+  document.getElementById("slide3").classList.remove("active");
+  document.getElementById("slide4").classList.add("active");
+};
+
+/* SNOW + STARS */
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+let snow = Array.from({length:120},()=>({
+  x:Math.random()*canvas.width,
+  y:Math.random()*canvas.height,
+  r:Math.random()*2+1,
+  s:Math.random()*1+0.5
+}));
+
+let stars = Array.from({length:30},()=>({
+  x:Math.random()*canvas.width,
+  y:Math.random()*canvas.height,
+  l:Math.random()*80+50,
+  s:Math.random()*3+2
+}));
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  snow.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle="white";
+    ctx.fill();
+    p.y+=p.s;
+    if(p.y>canvas.height) p.y=0;
+  });
+
+  stars.forEach(st=>{
+    ctx.strokeStyle="rgba(255,255,255,0.8)";
+    ctx.beginPath();
+    ctx.moveTo(st.x,st.y);
+    ctx.lineTo(st.x+st.l,st.y+st.l/3);
+    ctx.stroke();
+    st.x+=st.s;
+    st.y+=st.s/3;
+    if(st.x>canvas.width) {
+      st.x=-100;
+      st.y=Math.random()*canvas.height;
+    }
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
